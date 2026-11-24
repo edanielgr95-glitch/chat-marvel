@@ -1,5 +1,8 @@
 export function getUserMessage(error) {
-  if (error?.code === 'NETWORK') {
+    if (error?.code === 'EMPTY_REPLY') {
+    return 'El personaje no respondió. Inténtalo de nuevo.';
+  }
+    if (error?.code === 'NETWORK') {
     return 'Sin conexión. Revisa tu internet e inténtalo de nuevo.';
   }
   if (error?.status === 404) {

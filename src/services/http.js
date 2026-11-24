@@ -9,9 +9,11 @@ export async function fetchJson(url, options = {}) {
     throw error;
   }
 
-  if (!response.ok) {
+   if (!response.ok) {
     const error = new Error(`HTTP ${response.status}`);
     error.status = response.status;
+    const retryAfter = Number(response.headers.get('retry-after'));
+    if (retryAfter > 0) error.retryAfter = retryAfter;
     throw error;
   }
 
