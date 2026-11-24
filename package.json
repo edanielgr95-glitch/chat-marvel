@@ -1,6 +1,7 @@
 {
   "name": "chat-marvel",
   "version": "1.0.0",
+    "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,5 +10,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "dependencies": {
+    "@google/genai": "^3.6.1"
+  }
 }
