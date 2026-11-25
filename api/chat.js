@@ -57,11 +57,12 @@ export default async function handler(req, res) {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const { characterId, messages } = req.body;
 
-    const response = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL ?? 'gemini-3.8-flash',
+      const response = await ai.models.generateContent({
+      model: process.env.GEMINI_MODEL ?? 'gemini-3.5-flash-lite',
       contents: toGeminiContents(messages),
       config: {
         systemInstruction: SYSTEM_PROMPTS[characterId],
+        temperature: 0.8,
       },
     });
 
