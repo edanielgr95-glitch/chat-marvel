@@ -223,9 +223,6 @@ header h1 {
     justify-content: space-between;
     align-items: center;
     padding: 1rem 1.5rem;
-      .gallery {
-    grid-template-columns: repeat(2, 1fr);
-  }
   }
 
   header h1 {
@@ -245,6 +242,10 @@ header h1 {
     text-align: left;
   }
 
+  .gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .message {
     max-width: 70%;
   }
@@ -256,9 +257,10 @@ header h1 {
     max-width: 64rem;
     margin: 0 auto;
     padding: 2rem;
-      .gallery {
-    grid-template-columns: repeat(3, 1fr);
   }
+
+  .gallery {
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .message {
