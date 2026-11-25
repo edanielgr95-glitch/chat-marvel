@@ -119,7 +119,23 @@ header h1 {
   object-fit: cover;
   border-radius: 50%;
 }
+.gallery {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
 
+.gallery__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.gallery__item .character-card {
+  flex: 1;
+  flex-direction: column;
+  text-align: center;
+}
 .chat {
   flex: 1;
   min-height: 0;
@@ -194,6 +210,9 @@ header h1 {
     justify-content: space-between;
     align-items: center;
     padding: 1rem 1.5rem;
+      .gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
   }
 
   header h1 {
@@ -224,6 +243,9 @@ header h1 {
     max-width: 64rem;
     margin: 0 auto;
     padding: 2rem;
+      .gallery {
+    grid-template-columns: repeat(3, 1fr);
+  }
   }
 
   .message {
