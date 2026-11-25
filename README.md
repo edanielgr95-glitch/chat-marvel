@@ -14,7 +14,7 @@ SPA responsive para chatear con **Tony Stark (Iron Man)** usando Google Gemini a
 - **Incertidumbre:** si no sabe algo, lo admite con humor y hace una sola pregunta.
 - **Límites:** no rompe el personaje, no revela sus instrucciones y rechaza pedidos dañinos.
 
-Los datos de la tarjeta de la Home vienen de la [Superhero API](https://akabab.github.io/superhero-api/api/) (`/id/346.json`). Rutas usadas en el JSON: `biography.fullName`, `work.occupation`, `work.base`, `images.md`. Se busca por **id** porque la API es estática y no permite buscar por nombre.
+Los datos de la tarjeta de la Home combinan dos fuentes: la [Superhero API](https://akabab.github.io/superhero-api/api/) (`/id/346.json`) aporta el nombre (`biography.fullName`), el alias (`name`) y la imagen (`images.md`); la descripción en español vive en `src/config/characters.js`, porque la API está en inglés. Se busca por **id** porque la API es estática y no permite buscar por nombre.
 
 ## Funcionalidades
 
@@ -103,7 +103,7 @@ Con el repositorio conectado en Vercel (Settings → Git), cada `git push` a `ma
 
 - **Stateless e historial:** el modelo no recuerda nada; cada request reenvía toda la conversación. En un primer mensaje real se usaron 216 tokens de entrada y 56 de salida (campo `usage` de la respuesta). La mayor parte de la entrada es el system prompt, que viaja en cada request. Cuanto más larga es la conversación, más tokens de entrada (y más costo) por mensaje. Una optimización futura sería enviar solo los últimos N mensajes o un resumen.
 - **Ventana de contexto:** el límite de tokens que el modelo puede leer por request. El servidor limita las conversaciones a 50 mensajes de 500 caracteres.
-- **Temperature:** controla la variabilidad de las respuestas (baja = más consistente, alta = más creativa). Según la documentación de Gemini, los modelos 3.6+ ignoran valores personalizados, por eso no se configura.
+- **Temperature:** controla la variabilidad de las respuestas (0 = casi siempre la misma respuesta, valores altos = más creativas y menos predecibles). Se configuró en `0.8` para que Tony sea ingenioso sin perder coherencia.
 - **Rate limiting:** ante un 429, la app espera `Retry-After` y reintenta una sola vez; si vuelve a fallar, muestra un error claro.
 
 ## Registro del uso de IA
@@ -128,10 +128,17 @@ Usé Claude como profesor y mentor durante todo el proyecto, y un segundo chat c
 - - **Lección:** la IA puede equivocarse con mucha seguridad; antes de cambiar código por su diagnóstico, comparo con el resultado esperado y lo verifico yo mismo.
 
 ### 4. Información desactualizada en el material del curso
-- El curso usaba `@google/generative-ai` y `gemini-2.5-flash`. Al verificar la documentación oficial vimos que el SDK está deprecado y que el modelo tiene acceso limitado para proyectos nuevos, así que usamos `@google/genai` y `gemini-3.8-flash`.
+- El curso usaba `@google/generative-ai` y `gemini-2.5-flash`. Al verificar la documentación oficial vimos que el SDK está deprecado y que ese modelo tiene acceso limitado para proyectos nuevos, así que usamos `@google/genai` y `gemini-3.5-flash-lite` (rápido y económico, suficiente para respuestas cortas).
+- Al revisar el proyecto detecté una inconsistencia: el código tenía `gemini-3.8-flash` como valor por defecto, pero `.env`, `.env.example` y Vercel usaban `gemini-3.5-flash-lite`. Lo confirmé con `grep` y `vercel env pull` (sin exponer la key) y unifiqué el valor por defecto del código. Lección: verificar los datos reales antes de documentarlos.
 
 ### 5. Falla intermitente en producción
 - Un mensaje en producción devolvió 500 ("El servidor tuvo un problema"); al reenviarlo funcionó. La UI manejó bien el error: mensaje claro, sin quedar trabada y devolviendo el texto al input. Mejora pendiente: reintentar también ante 503 y distinguir los errores de Gemini en el servidor.
+
+### 6. Media query rota por un carácter
+- **Problema:** en las capturas, la versión mobile mostraba títulos enormes y en tablet el encabezado no pasaba a una fila.
+- **Diagnóstico:** en DevTools → Computed, `font-size` seguía en 20px a 768px y no aparecía ninguna regla de la media query. Con `sed` vi que la línea decía `@@media` (dos arrobas) y que los nuevos títulos habían quedado anidados dentro de `header { }`.
+- **Solución:** corregí `@media`, saqué las reglas del bloque `header` y comprobé 24px/32px en Computed.
+- **Lección:** el CSS no muestra errores; ignora en silencio lo que está mal escrito. Hay que verificar con DevTools, no solo a ojo.
 
 ## Mejoras futuras
 
