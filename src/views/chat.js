@@ -1,19 +1,25 @@
-import { DEFAULT_CHARACTER } from '../config/characters.js';
-import { chatState } from '../chat/chatState.js';
+import { getCharacterById } from '../config/characters.js';
+import { getChat } from '../chat/chatState.js';
 import { validateMessage, createMessage, buildPayload, normalizeReply, MAX_MESSAGE_LENGTH } from '../chat/chatLogic.js';
 import { sendWithRetry } from '../chat/retry.js';
 import { sendChat } from '../services/chatApi.js';
 import { renderMessages, setStatus, setFormDisabled } from '../ui/chatUi.js';
 import { getUserMessage } from '../utils/errors.js';
 
-const NAME = DEFAULT_CHARACTER.displayName;
-
 export function renderChat(app) {
+  const params = new URLSearchParams(window.location.search);
+  const character = getCharacterById(params.get('personaje'));
+  const chat = getChat(character.id);
+
   app.innerHTML = `
-    <section class="chat" aria-label="Chat con ${NAME}">
+    <section class="chat" aria-label="Chat con ${character.displayName}">
+      <div class="chat__header">
+        <h1>Chat con ${character.displayName}</h1>
+        <a href="/home">Cambiar de personaje</a>
+      </div>
       <div class="chat__messages" id="messages" aria-live="polite"></div>
       <p class="chat__status" id="chat-status"></p>
-      <form class="chat__form" id="chat-form">
+      <form class="chat__form" id="chat-form" data-character="${character.id}">
         <input
           class="chat__input"
           id="chat-input"
@@ -28,25 +34,25 @@ export function renderChat(app) {
     </section>
   `;
 
-  const elements = getChatElements();
-  renderMessages(elements.messages, chatState.messages, NAME);
+  const elements = getChatElements(character.id);
+  renderMessages(elements.messages, chat.messages, character.displayName);
 
-  if (chatState.isLoading) {
+  if (chat.isLoading) {
     setFormDisabled(elements, true);
-    setStatus(elements.status, `${NAME} está escribiendo...`);
+    setStatus(elements.status, `${character.displayName} está escribiendo...`);
   }
 
   elements.form.addEventListener('submit', (event) => {
     event.preventDefault();
-    handleSend();
+    handleSend(character, chat);
   });
 
   elements.input.focus();
 }
 
-function getChatElements() {
+function getChatElements(characterId) {
   const form = document.querySelector('#chat-form');
-  if (!form) return null;
+  if (!form || form.dataset.character !== characterId) return null;
   return {
     form,
     messages: document.querySelector('#messages'),
@@ -56,42 +62,42 @@ function getChatElements() {
   };
 }
 
-async function handleSend() {
-  if (chatState.isLoading) return;
+async function handleSend(character, chat) {
+  if (chat.isLoading) return;
 
-  let elements = getChatElements();
+  let elements = getChatElements(character.id);
   const text = validateMessage(elements.input.value);
   if (!text) {
     setStatus(elements.status, 'Escribe un mensaje antes de enviar.', true);
     return;
   }
 
-  chatState.messages.push(createMessage('user', text));
-  chatState.isLoading = true;
+  chat.messages.push(createMessage('user', text));
+  chat.isLoading = true;
   elements.input.value = '';
-  renderMessages(elements.messages, chatState.messages, NAME);
+  renderMessages(elements.messages, chat.messages, character.displayName);
   setFormDisabled(elements, true);
-  setStatus(elements.status, `${NAME} está escribiendo...`);
+  setStatus(elements.status, `${character.displayName} está escribiendo...`);
 
   let errorMessage = '';
   try {
-    const payload = buildPayload(DEFAULT_CHARACTER.id, chatState.messages);
+    const payload = buildPayload(character.id, chat.messages);
     const data = await sendWithRetry(sendChat, payload, (seconds) => {
-      const current = getChatElements();
+      const current = getChatElements(character.id);
       if (current) setStatus(current.status, `Demasiadas solicitudes. Reintentando en ${seconds} s...`);
     });
-    chatState.messages.push(createMessage('assistant', normalizeReply(data)));
+    chat.messages.push(createMessage('assistant', normalizeReply(data)));
   } catch (error) {
-    chatState.messages.pop();
+    chat.messages.pop();
     errorMessage = getUserMessage(error);
   } finally {
-    chatState.isLoading = false;
+    chat.isLoading = false;
   }
 
-  elements = getChatElements();
+  elements = getChatElements(character.id);
   if (!elements) return;
 
-  renderMessages(elements.messages, chatState.messages, NAME);
+  renderMessages(elements.messages, chat.messages, character.displayName);
   setFormDisabled(elements, false);
   setStatus(elements.status, errorMessage, errorMessage !== '');
   if (errorMessage) elements.input.value = text;
