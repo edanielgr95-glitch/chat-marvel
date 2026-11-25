@@ -22,7 +22,7 @@ async function loadHeroCard(container) {
 
   try {
     const raw = await getHeroById(DEFAULT_CHARACTER.apiId);
-    const profile = toHeroProfile(raw);
+        const profile = { ...toHeroProfile(raw), tagline: DEFAULT_CHARACTER.tagline };
     if (!container.isConnected) return;
     renderHeroCard(container, profile);
   } catch (error) {

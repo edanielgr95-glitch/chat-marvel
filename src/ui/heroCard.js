@@ -20,6 +20,6 @@ export function renderHeroCard(container, profile) {
 
   container.querySelector('.character-card__name').textContent = profile.fullName;
   container.querySelector('.character-card__alias').textContent = profile.heroName;
-  container.querySelector('.character-card__info').textContent =
-    `${profile.occupation} · Base: ${profile.base}`;
+    container.querySelector('.character-card__info').textContent =
+    profile.tagline ?? `${profile.occupation} · Base: ${profile.base}`;
 }
