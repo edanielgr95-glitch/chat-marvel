@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { toGeminiContents, validateBody } from '../api/chat.js';
+import { CHARACTER_LIST } from '../src/config/characters.js';
 
 describe('toGeminiContents', () => {
   it('traduce assistant a model y content a parts', () => {
@@ -23,6 +24,12 @@ describe('validateBody', () => {
 
   it('acepta un cuerpo válido', () => {
     expect(validateBody(validBody)).toBeNull();
+  });
+
+  it('acepta a todos los personajes de la galería', () => {
+    for (const character of CHARACTER_LIST) {
+      expect(validateBody({ ...validBody, characterId: character.id })).toBeNull();
+    }
   });
 
   it('rechaza personajes desconocidos, roles inválidos y cuerpos vacíos', () => {
